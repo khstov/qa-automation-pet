@@ -12,9 +12,15 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Smoke') {
             steps {
-                sh './gradlew clean test'
+                sh './gradlew clean smokeTest'
+            }
+        }
+
+        stage('Regression') {
+            steps {
+                sh './gradlew regressionTest'
             }
         }
     }
