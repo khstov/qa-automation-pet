@@ -1,0 +1,48 @@
+services:
+  selenoid:
+    image: aerokube/selenoid:1.11.3
+    container_name: qa-selenoid
+    ports:
+      - "4444:4444"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./selenoid:/etc/selenoid:ro
+    environment:
+      DOCKER_API_VERSION: "1.45"
+      TZ: Europe/Moscow
+    command:
+      - -conf
+      - /etc/selenoid/browsers.json
+      - -limit
+      - "2"
+      - -container-network
+      - qa-automation-network
+    networks:
+      - qa-automation-network
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: qa-jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      SELENOID_URL: http://selenoid:4444/wd/hub
+      BROWSER_VERSION: "128.0"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    depends_on:
+      - selenoid
+    networks:
+      - qa-automation-network
+
+
+networks:
+  qa-automation-network:
+    name: qa-automation-network
+
+volumes:
+  jenkins-data:
